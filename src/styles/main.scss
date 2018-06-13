@@ -1,7 +1,7 @@
-@mixin bgcNth($color, $n: 5) {
+@mixin bgcNth($color, $n: 3) {
   @for $i from 1 through $n {
     &:nth-child(#{$i}n) {
-      background-color: lighten($color, $i * 5%);
+      background-color: lighten($color, $i * 10%);
     }
   }
 }

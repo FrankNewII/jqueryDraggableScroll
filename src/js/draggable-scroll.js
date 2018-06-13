@@ -24,6 +24,10 @@
         this._config = config;
         this._$scrolledElm = this._config.$element;
         this._pressed = false;
+        this._startX = undefined;
+        this._startY = undefined;
+        this._startScrollX = undefined;
+        this._startScrollY = undefined;
         this._findElm()
             ._appendStyles()
             ._initListeners();
@@ -46,7 +50,8 @@
     statics.defaultConfig = {
         scrollX: true,
         scrollY: true,
-        dropOnMouseLeave: false
+        dropOnMouseLeave: false,
+        hideScrollbars: true
     };
 
     prototype.scrollTo = function (turn, pxs) {
@@ -74,81 +79,85 @@
     };
 
     prototype._appendStyles = function () {
+        var hideScroll = this._config.hideScrollbars;
         this._$scrolledWrapper.css('user-select','none');
+
+        if (hideScroll) {
+            this._$scrolledWrapper.css('overflow','hidden');
+        }
         this._$scrolledElm.css({
             'overflow': 'scroll',
-            'height': '100%',
-            'width': '100%',
+            'height': hideScroll?'calc(100% + 16px)':'100%',
+            'width': hideScroll?'calc(100% + 16px)':'100%',
         });
         return this;
     };
 
     prototype._initListeners = function () {
-        var self = this;
-        var startX;
-        var startY;
-        var startScrollX;
-        var startScrollY;
-        var pressed;
-
         this._$scrolledElm
-            .on('mousedown', function (ev) {
-                pressed = true;
-                startX = ev.clientX;
-                startY = ev.clientY;
-                startScrollX = self.scrollTo('left');
-                startScrollY = self.scrollTo('top');
-                self._$scrolledWrapper.addClass('scrollDraggable-draging');
-            })
-            .on('mouseup', function () {
-                pressed = false;
-                self._$scrolledWrapper.removeClass('scrollDraggable-draging');
-            })
-            .on('mousemove', function (ev) {
-                if(pressed) {
-                    self._config.scrollX && self.scrollTo('left', startScrollX + (startX - ev.clientX) );
-                    self._config.scrollY && self.scrollTo('top', startScrollY + (startY - ev.clientY) );
-                }
-            });
+            .on('mousedown', this.__mousedownHandler.bind(this))
+            .on('mouseup', this.__mouseupHandler.bind(this))
+            .on('mousemove', this.__mousemoveHandler.bind(this));
 
         this._$scrolledWrapper
             .find('[data-draggable-scroll-control]')
-            .on('click', function (ev) {
-                var $target = $(ev.target);
-                var data = $target.data('draggableScrollControl').split(':');
-                var direction = data[0];
-                var step = parseInt(data[1]);
-                var currentVal;
-
-                switch (direction) {
-                    case 'top':
-                        step = 0 - step;
-                        currentVal = self.scrollTo('top');
-                        break;
-                    case 'bottom':
-                        currentVal = self.scrollTo('top');
-                        direction = 'top';
-                        break;
-                    case 'left':
-                        currentVal = self.scrollTo('left');
-                        step = 0 - step;
-                        break;
-                    case 'right':
-                        direction = 'left';
-                        currentVal = self.scrollTo('left');
-                        break;
-                }
-
-                self.scrollTo(direction, currentVal + step);
-            });
+            .on('click', this.__controlsClickHandler.bind(this));
 
         if (this._config.dropOnMouseLeave) {
-            this._$scrolledElm.on('mouseleave', function () {
-                pressed = false;
-            });
+            this._$scrolledElm.on('mouseleave', this.__mouseupHandler.bind(this));
         }
 
         return this;
+    };
+
+    prototype.__mouseupHandler = function () {
+        this._pressed = false;
+        this._$scrolledWrapper.removeClass('scrollDraggable-draging');
+    };
+
+    prototype.__mousedownHandler = function (ev) {
+        this._pressed = true;
+        this._startX = ev.clientX;
+        this._startY = ev.clientY;
+        this._startScrollX = this.scrollTo('left');
+        this._startScrollY = this.scrollTo('top');
+        this._$scrolledWrapper.addClass('scrollDraggable-draging');
+    };
+
+    prototype.__mousemoveHandler = function (ev) {
+        if(this._pressed) {
+            this._config.scrollX && this.scrollTo('left', this._startScrollX + (this._startX - ev.clientX) );
+            this._config.scrollY && this.scrollTo('top', this._startScrollY + (this._startY - ev.clientY) );
+        }
+    };
+
+    prototype.__controlsClickHandler = function (ev) {
+        var $target = $(ev.target);
+        var data = $target.data('draggableScrollControl').split(':');
+        var direction = data[0];
+        var step = parseInt(data[1]);
+        var currentVal;
+
+        switch (direction) {
+            case 'top':
+                step = 0 - step;
+                currentVal = this.scrollTo('top');
+                break;
+            case 'bottom':
+                currentVal = this.scrollTo('top');
+                direction = 'top';
+                break;
+            case 'left':
+                currentVal = this.scrollTo('left');
+                step = 0 - step;
+                break;
+            case 'right':
+                direction = 'left';
+                currentVal = this.scrollTo('left');
+                break;
+        }
+
+        this.scrollTo(direction, currentVal + step);
     };
 
     var $containers = $('[data-draggable-scroll]');
