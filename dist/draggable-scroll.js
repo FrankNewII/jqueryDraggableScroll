@@ -26,9 +26,11 @@
         this._$scrolledElm = this._config.$element;
         this._pressed = false;
         this._startX = undefined;
+        this._isAnimate = false;
         this._startY = undefined;
         this._startScrollX = undefined;
         this._startScrollY = undefined;
+
         this._findElm()
             ._appendStyles()
             ._initListeners();
@@ -52,17 +54,40 @@
         scrollX: true,
         scrollY: true,
         dropOnMouseLeave: false,
+        animateScrollByControls: true,
+        animateScrollTime: 200,
         hideScrollbars: true
     };
 
-    prototype.scrollTo = function (turn, pxs) {
+    prototype.scrollTo = function (turn, pxs, anim) {
         var method = 'scroll' + turn.charAt(0).toUpperCase() + turn.slice(1);
-        var val = pxs?this._$scrolledElm[method](pxs):this._$scrolledElm[method]();
+        var val;
 
-        if(pxs) {
-            console.log(arguments);
+        if (pxs !== undefined) {
+
+            if (anim) {
+                var animParam = {};
+
+                animParam[method] = pxs;
+
+                this._$scrolledElm
+                    .animate(animParam, this._config.animateScrollTime);
+
+                this._isAnimate = true;
+
+                setTimeout(function () {
+                    this._isAnimate = false;
+                }.bind(this), this._config.animateScrollTime);
+
+            } else {
+                this._$scrolledElm[method](pxs);
+            }
+
+        } else {
+            val = this._$scrolledElm[method]();
         }
-        return !pxs?val:this;
+
+        return val;
     };
 
     prototype._findElm = function () {
@@ -80,17 +105,24 @@
     };
 
     prototype._appendStyles = function () {
-        var hideScroll = this._config.hideScrollbars;
-        this._$scrolledWrapper.css('user-select','none');
+        var hideScroll = this._config
+            .hideScrollbars;
+
+        this._$scrolledWrapper
+            .css('user-select', 'none');
 
         if (hideScroll) {
-            this._$scrolledWrapper.css('overflow','hidden');
+            this._$scrolledWrapper
+                .css('overflow', 'hidden');
         }
-        this._$scrolledElm.css({
-            'overflow': 'scroll',
-            'height': hideScroll?'calc(100% + 16px)':'100%',
-            'width': hideScroll?'calc(100% + 16px)':'100%',
-        });
+
+        this._$scrolledElm
+            .css({
+                'overflow': 'scroll',
+                'height': hideScroll ? 'calc(100% + 17px)' : '100%',
+                'width': hideScroll ? 'calc(100% + 17px)' : '100%',
+            });
+
         return this;
     };
 
@@ -126,13 +158,17 @@
     };
 
     prototype.__mousemoveHandler = function (ev) {
-        if(this._pressed) {
-            this._config.scrollX && this.scrollTo('left', this._startScrollX + (this._startX - ev.clientX) );
-            this._config.scrollY && this.scrollTo('top', this._startScrollY + (this._startY - ev.clientY) );
+        if (this._pressed) {
+            this._config.scrollX && this.scrollTo('left', this._startScrollX + (this._startX - ev.clientX));
+            this._config.scrollY && this.scrollTo('top', this._startScrollY + (this._startY - ev.clientY));
         }
     };
 
     prototype.__controlsClickHandler = function (ev) {
+
+        if (this._isAnimate)
+            return;
+
         var $target = $(ev.target);
         var data = $target.data('draggableScrollControl').split(':');
         var direction = data[0];
@@ -157,13 +193,13 @@
                 currentVal = this.scrollTo('left');
                 break;
         }
-
-        this.scrollTo(direction, currentVal + step);
+        console.log(direction, currentVal + step, this._config.animateScrollByControls);
+        this.scrollTo(direction, currentVal + step, this._config.animateScrollByControls);
     };
 
     var $containers = $('[data-draggable-scroll]');
 
-    if($containers.length) {
+    if ($containers.length) {
         $containers.each(function (i, el) {
             $(el).draggableScroll();
         });

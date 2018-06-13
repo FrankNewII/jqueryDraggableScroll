@@ -1,0 +1,91 @@
+.scroller-demo {
+  width: 100%;
+  height: 300px;
+
+  &_bgc_red {
+    background-color: $color-white;
+
+    .scroller-demo__item {
+      @include bgcNth($color-red);
+    }
+  }
+
+  &_bgc_yellow {
+    background-color: $color-white;
+
+    .scroller-demo__item {
+      @include bgcNth($color-transparent-red);
+    }
+  }
+
+  &_bgc_black {
+    position: relative;
+    z-index: 1;
+    background-color: $color-white;
+    .scroller-demo__item {
+      @include bgcNth($color-black);
+    }
+  }
+
+  &__wrapper {
+    position: relative;
+    width: 2400px;
+
+    @extend %after-clearfix;
+  }
+  
+  &__control {
+    position: absolute;
+    width: 50px;
+    height: 50px;
+    z-index: 2;
+
+    &_pos {
+      &_left, &_right {
+        top: 50%;
+        transform: translateY(-50%);
+      }
+
+      &_top, &_bottom {
+        left: 50%;
+        transform: translateX(-50%);
+      }
+
+      &_left {
+        left: 0;
+        background-color: red;
+      }
+
+      &_right {
+        right: 0;
+        background-color: blue;
+      }
+
+      &_top {
+        top: 0;
+        background-color: white;
+      }
+
+      &_bottom {
+        bottom: 0;
+        background-color: black;
+      }
+    }
+  }
+
+  &__item {
+    width: 240px;
+    height: 240px;
+    float: left;
+
+    @extend %after-clearfix;
+  }
+
+  &__controlsWrapper {
+    position: absolute;
+    top: 0;
+    width: 100%;
+    height: 100%;
+    overflow: visible;
+  }
+}

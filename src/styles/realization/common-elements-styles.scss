@@ -1,0 +1,31 @@
+body {
+  font: {
+    family: "Roboto Condensed", Helvetica,Arial,sans-serif;
+    weight: 400;
+    size: 24px;
+  }
+  background-color: $color-blue;
+}
+
+section, header {
+  max-width: 1200px;
+  margin: 0 auto;
+}
+
+h1, h2, h3, h4 {
+  font-weight: 400;
+}
+
+h1 {
+  margin: {
+    top: 60px;
+    bottom: 40px;
+  }
+}
+
+h2 {
+  margin: {
+    top: 40px;
+    bottom: 20px;
+  }
+}

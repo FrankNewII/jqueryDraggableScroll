@@ -11,15 +11,16 @@ var gulp = require( 'gulp' ),
 
 var gulpConfig = {
     srcJS: 'src/js/draggable-scroll.js',
-    srcCSS: 'src/styles/**/*.{sass,scss}',
+    watchCSS: 'src/styles/**/*.{sass,scss}',
+    srcCSS: 'src/styles/main.scss',
     distJS: 'dist/',
-    dist: 'demo/'
+    dist: 'demo/',
+    devBaseUrl: 'http://localhost'
 };
 
 gulp.task('watch', function () {
-    gulp.watch(gulpConfig.srcCSS, ['styles']);
-    gulp.watch(gulpConfig.srcJS, ['js']);
-    connect.reload();
+    gulp.watch(gulpConfig.watchCSS, ['styles', '_reload']);
+    gulp.watch(gulpConfig.srcJS, ['js', '_reload']);
 });
 
 gulp.task( 'js', function () {
@@ -34,9 +35,10 @@ gulp.task( 'js', function () {
         .pipe( gulp.dest( gulpConfig.distJS ) );
 } );
 
-gulp.task('serve', function () {
+gulp.task('connect', function () {
     connect.server({
         root: ['demo', 'dist'],
+        base: gulpConfig.devBaseUrl,
         livereload: true
     });
 });
@@ -52,9 +54,13 @@ gulp.task('styles', function () {
         .pipe(gulp.dest(gulpConfig.dist))
 });
 
+gulp.task('_reload', function () {
+    connect.reload();
+});
+
 gulp.task('default', [
     'styles',
     'js',
-    'serve',
+    'connect',
     'watch'
 ]);

@@ -1,0 +1,31 @@
+.footer {
+  background-color: $color-black;
+  color: $color-white;
+  margin-top: 80px;
+
+  @extend %after-clearfix;
+
+  &__side-container {
+    &_float {
+      &_left{
+        float: left;
+      }
+
+      &_right{
+        float: right;
+      }
+    }
+  }
+
+  &__label {
+    line-height: 60px;
+    font-size: 16px;
+    height: 60px;
+    margin: 0;
+  }
+
+  &__centered-wrapper {
+    max-width: 1200px;
+    margin: 0 auto;
+  }
+}
