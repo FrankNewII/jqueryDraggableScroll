@@ -2,6 +2,11 @@
   width: 100%;
   height: 300px;
 
+  &_height_full-screen {
+    position: relative;
+    height: 100vh;
+  }
+
   &_bgc_red {
     background-color: $color-white;
 
@@ -23,7 +28,7 @@
     z-index: 1;
     background-color: $color-white;
     .scroller-demo__item {
-      @include bgcNth($color-black);
+      @include bgcNth($color-black, 5);
     }
   }
 
@@ -31,6 +36,11 @@
     position: relative;
     width: 2400px;
 
+    &_pic_map {
+      width: 24000px;
+      height: 24000px;
+      background-image: url($black-map-patter);
+    }
     @extend %after-clearfix;
   }
   
@@ -77,8 +87,6 @@
     width: 240px;
     height: 240px;
     float: left;
-
-    @extend %after-clearfix;
   }
 
   &__controlsWrapper {

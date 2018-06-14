@@ -25,11 +25,16 @@
         this._config = config;
         this._$scrolledElm = this._config.$element;
         this._pressed = false;
-        this._startX = undefined;
+        this._startMousedownX = undefined;
         this._isAnimate = false;
-        this._startY = undefined;
+        this._startMousedownY = undefined;
         this._startScrollX = undefined;
         this._startScrollY = undefined;
+        this._startInertionPointX = 0;
+        this._startInertionPointY = 0;
+
+        this._lastInertionPointX = this._startInertionPointX;
+        this._lastInertionPointY = this._startInertionPointY;
 
         this._findElm()
             ._appendStyles()
@@ -60,6 +65,13 @@
             return function (dig) {
                 return $doc.width() / 100 * dig;
             }
+        })(),
+        vh: (function () {
+            var $doc = $(document);
+
+            return function (dig) {
+                return $doc.height() / 100 * dig;
+            }
         })()
     };
 
@@ -86,7 +98,8 @@
         dropOnMouseLeave: false,
         animateScrollByControls: true,
         animateScrollTime: 200,
-        hideScrollbars: true
+        hideScrollbars: true,
+        inertiaByDragging: true
     };
 
     prototype.scrollTo = function (turn, units, anim) {
@@ -167,30 +180,86 @@
             .on('click', this.__controlsClickHandler.bind(this));
 
         if (this._config.dropOnMouseLeave) {
-            this._$scrolledElm.on('mouseleave', this.__mouseupHandler.bind(this));
+            this._$scrolledElm
+                .on('mouseleave', this.__mouseupHandler.bind(this));
         }
 
         return this;
     };
 
-    prototype.__mouseupHandler = function () {
+    prototype.__inertionMove = function () {
+        if (Math.abs(this._inertiaX) < 1)
+            this._inertiaX = 0;
+
+        var self = this;
+
+        if (Math.abs(this._inertiaY) < 1)
+            this._inertiaY = 0;
+
+        if (this._inertiaX) {
+            var stepX = this._inertiaX / 20;
+            this._inertiaX -= stepX / 2;
+            this.scrollTo('left', this.scrollTo('left') + stepX);
+        }
+
+        if (this._inertiaY) {
+            var stepY = this._inertiaY / 20;
+            this._inertiaY -= stepY / 2;
+            this.scrollTo('top', this.scrollTo('top') + stepY);
+        }
+
+        this._$scrolledWrapper
+            .addClass('scrollDraggable-inertion-move');
+
+        (this._inertiaY || this._inertiaX) && setTimeout(function () {
+            self.__inertionMove();
+        }, 0);
+    };
+
+    prototype.__mouseupHandler = function (ev) {
         this._pressed = false;
-        this._$scrolledWrapper.removeClass('scrollDraggable-draging');
+        this._$scrolledWrapper
+            .removeClass('scrollDraggable-draging');
+        if (this._config.inertiaByDragging) {
+            var lastX = this._lastInertionPointX;
+            var lastY = this._lastInertionPointY;
+            var currentX = ev.clientX;
+            var currentY = ev.clientY;
+            this._inertiaX = (lastX - currentX) * 60; //per sec
+            this._inertiaY = (lastY - currentY) * 60;
+
+            this.__inertionMove();
+        }
     };
 
     prototype.__mousedownHandler = function (ev) {
         this._pressed = true;
-        this._startX = ev.clientX;
-        this._startY = ev.clientY;
+        this._startMousedownX = ev.clientX;
+        this._startMousedownY = ev.clientY;
         this._startScrollX = this.scrollTo('left');
         this._startScrollY = this.scrollTo('top');
+
+        if (this._config.inertiaByDragging) {
+            this._lastInertionPointX = this._startInertionPointX;
+            this._lastInertionPointY = this._startInertionPointY;
+            this._startInertionPointX = ev.clientX;
+            this._startInertionPointY = ev.clientY;
+            this._inertiaX = 0;
+            this._inertiaY = 0;
+        }
         this._$scrolledWrapper.addClass('scrollDraggable-draging');
     };
 
     prototype.__mousemoveHandler = function (ev) {
         if (this._pressed) {
-            this._config.scrollX && this.scrollTo('left', this._startScrollX + (this._startX - ev.clientX));
-            this._config.scrollY && this.scrollTo('top', this._startScrollY + (this._startY - ev.clientY));
+            if (this._config.inertiaByDragging) {
+                this._lastInertionPointX = this._startInertionPointX;
+                this._lastInertionPointY = this._startInertionPointY;
+                this._startInertionPointX = ev.clientX;
+                this._startInertionPointY = ev.clientY;
+            }
+            this._config.scrollX && this.scrollTo('left', this._startScrollX + (this._startMousedownX - ev.clientX));
+            this._config.scrollY && this.scrollTo('top', this._startScrollY + (this._startMousedownY - ev.clientY));
         }
     };
 
