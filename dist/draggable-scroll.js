@@ -50,6 +50,36 @@
         }
     };
 
+    statics._unitsConverters = {
+        px: function (dig) {
+            return dig;
+        },
+        vw: (function () {
+            var $doc = $(document);
+
+            return function (dig) {
+                return $doc.width() / 100 * dig;
+            }
+        })()
+    };
+
+    statics.addUnitConverter = function (unit, converter) {
+        if (statics._unitsConverters[unit])
+            console.warn('Converter for ' + unit + ' was changed.');
+
+        statics._unitsConverters[unit] = converter;
+    };
+
+    statics.converterUnitToPxs = function (dig, unit) {
+        var converter = statics._unitsConverters[unit];
+
+        if (!converter)
+            throw new Error('Undefined css units named as: "'+unit+'" \n\.' +
+                'Add converter ($.fn.draggableScroll.addUnitConverter(unit, convertFunction)) to PXs for that unit, or you have a typo.');
+
+        return converter(dig);
+    };
+
     statics.defaultConfig = {
         scrollX: true,
         scrollY: true,
@@ -59,16 +89,16 @@
         hideScrollbars: true
     };
 
-    prototype.scrollTo = function (turn, pxs, anim) {
+    prototype.scrollTo = function (turn, units, anim) {
         var method = 'scroll' + turn.charAt(0).toUpperCase() + turn.slice(1);
         var val;
 
-        if (pxs !== undefined) {
+        if (units !== undefined) {
 
             if (anim) {
                 var animParam = {};
 
-                animParam[method] = pxs;
+                animParam[method] = units;
 
                 this._$scrolledElm
                     .animate(animParam, this._config.animateScrollTime);
@@ -80,7 +110,7 @@
                 }.bind(this), this._config.animateScrollTime);
 
             } else {
-                this._$scrolledElm[method](pxs);
+                this._$scrolledElm[method](units);
             }
 
         } else {
@@ -172,7 +202,7 @@
         var $target = $(ev.target);
         var data = $target.data('draggableScrollControl').split(':');
         var direction = data[0];
-        var step = parseInt(data[1]);
+        var step = statics.converterUnitToPxs(parseInt(data[1]), data[1].match(/[^\d\.]+/i)[0]);
         var currentVal;
 
         switch (direction) {
@@ -193,7 +223,7 @@
                 currentVal = this.scrollTo('left');
                 break;
         }
-        console.log(direction, currentVal + step, this._config.animateScrollByControls);
+
         this.scrollTo(direction, currentVal + step, this._config.animateScrollByControls);
     };
 
