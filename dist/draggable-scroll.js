@@ -10516,7 +10516,7 @@ statics.defaultConfig = {
     dropOnMouseLeave: false,
     animateScrollByControls: true,
     animateScrollTime: 200,
-    hideScrollbars: false,
+    hideScrollbars: true,
     inertiaByDragging: true,
     inertialResistance: 500
 };
