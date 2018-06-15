@@ -10431,7 +10431,7 @@ prototype.setInertion = function (x1, y1, x2, y2) {
     this._inertiaY = (y1 - y2) * 60;
 
     this._totalInertionEnergy = Math.abs(this._inertiaX) + Math.abs(this._inertiaY);
-    this._totalInertionFrames = 1000 / this._inertiaSpeed;
+    this._totalInertionFrames = this._inertiaSpeed;
 };
 
 module.exports = Inertia;
@@ -10478,9 +10478,11 @@ $.fn.draggableScroll = function DraggableScroll(config) {
      * Inertia by drag mouse
      *
      * */
-    this._isNeedToCheckInertia = 0;
-    this._timeToCheckInertia = 4;
-    this._inertia = new Inertia(this, this._config.inertiaSpeed);
+    this._pointsToCheckImpulse = 6;
+    this._lastInertionsPoints = [];
+    this._lastInertionsPoints.length = this._pointsToCheckImpulse;
+    this._lastInertionsPoints.fill(0);
+    this._inertia = new Inertia(this, this._config.inertialResistance);
 
     /**
      *
@@ -10516,7 +10518,7 @@ statics.defaultConfig = {
     animateScrollTime: 200,
     hideScrollbars: false,
     inertiaByDragging: true,
-    inertiaSpeed: 1
+    inertialResistance: 500
 };
 
 
@@ -10701,6 +10703,18 @@ prototype.__mouseupHandler = function (ev) {
 
     var lastX = this._lastInertionPointX;
     var lastY = this._lastInertionPointY;
+    lastX = 0;
+    lastY = 0;
+
+    this._lastInertionsPoints.forEach(function (v) {
+        lastX += v.x;
+        lastY += v.y;
+    });
+
+    lastX = lastX/this._lastInertionsPoints.length;
+    lastY = lastY/this._lastInertionsPoints.length;
+    this._lastInertionsPoints.fill(0);
+
     var currentX = ev.clientX;
     var currentY = ev.clientY;
 
@@ -10721,6 +10735,10 @@ prototype.__mousedownHandler = function (ev) {
     this._lastInertionPointX = ev.clientX;
     this._lastInertionPointY = ev.clientY;
 
+    if(this._lastInertionsPoints.push({x: ev.clientX, y: ev.clientY}) > this._pointsToCheckImpulse ) {
+        this._lastInertionsPoints.shift();
+    }
+
     this._inertia.reset();
 
     this._$scrolledWrapper.addClass('scrollDraggable-draging');
@@ -10730,14 +10748,10 @@ prototype.__mousedownHandler = function (ev) {
 
 prototype.__mousemoveHandler = function (ev) {
     if (this._pressed) {
-        if (!this._isNeedToCheckInertia) {
-            this._lastInertionPointX = ev.clientX;
-            this._lastInertionPointY = ev.clientY;
-            this._isNeedToCheckInertia = this._timeToCheckInertia;
-        } else {
-            this._isNeedToCheckInertia--;
-        }
 
+        if(this._lastInertionsPoints.push({x: ev.clientX, y: ev.clientY}) > this._pointsToCheckImpulse ) {
+            this._lastInertionsPoints.shift();
+        }
 
         this._config.scrollX
         && this.scrollTo('left', this._startScrollX + (this._startMousedownX - ev.clientX));
