@@ -39,7 +39,7 @@ $.fn.draggableScroll = function DraggableScroll(config) {
      * Inertia by drag mouse
      *
      * */
-    this._pointsToCheckImpulse = 6;
+    this._pointsToCheckImpulse = 10;
     this._lastInertionsPoints = [];
     this._lastInertionsPoints.length = this._pointsToCheckImpulse;
     this._lastInertionsPoints.fill(0);
