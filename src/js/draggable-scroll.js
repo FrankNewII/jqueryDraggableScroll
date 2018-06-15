@@ -1,306 +1,364 @@
-(function (factory) {
-    if (typeof define === 'function' && define.amd) {
-        define(['jquery'], factory);
+var $ = require('jquery');
+var Inertia = require('./draggable-scroll_inertion');
 
-    } else if (typeof module === 'object' && module.exports) {
-        module.exports = factory(require('jquery'));
 
-    } else {
-        if (typeof jQuery === 'undefined') {
-            throw new Error('DraggableScroll: Draggable scroll is depended on JQuery. \n\
-            Please append JQuery to document before load DraggableScroll plugin.');
-        }
 
-        factory(jQuery);
+$.fn.draggableScroll = function DraggableScroll(config) {
+
+    /**
+     *
+     * Self construct function by jQuery calling
+     *
+     * */
+
+    if (!(this instanceof DraggableScroll)) {
+        config = DraggableScroll.validateConfig(config);
+        config.$element = this;
+
+        return new DraggableScroll(config);
     }
-}(function ($) {
-    $.fn.draggableScroll = function DraggableScroll(config) {
-        if (!(this instanceof DraggableScroll)) {
-            config = DraggableScroll.validateConfig(config);
-            config.$element = this;
 
-            return new DraggableScroll(config);
+    this._config = config;
+    this._$scrolledElm = this._config.$element;
+    this._pressed = false;
+    this._isAnimate = false;
+
+    /**
+     *
+     * Scroll params:
+     *
+     * */
+
+    this._startScrollX = undefined;
+    this._startScrollY = undefined;
+    this._startMousedownX = undefined;
+    this._startMousedownY = undefined;
+
+    /**
+     *
+     * Inertia by drag mouse
+     *
+     * */
+    this._isNeedToCheckInertia = true;
+    this._inertia = new Inertia(this, this._config.inertiaSpeed);
+
+    /**
+     *
+     * Initialize
+     *
+     * */
+
+    this._findElm()
+        ._appendStyles()
+        ._initListeners();
+};
+
+
+
+var statics = $.fn.draggableScroll;
+var prototype = $.fn.draggableScroll.prototype;
+
+
+
+/**
+ *
+ *
+ * Statics methods:
+ *
+ *
+ * */
+
+statics.defaultConfig = {
+    scrollX: true,
+    scrollY: true,
+    dropOnMouseLeave: false,
+    animateScrollByControls: true,
+    animateScrollTime: 200,
+    hideScrollbars: true,
+    inertiaByDragging: true,
+    inertiaSpeed: 5
+};
+
+
+
+statics.validateConfig = function (conf) {
+    switch (typeof (conf)) {
+        case 'object':
+            return $.extend(statics.defaultConfig, conf);
+        case 'undefined':
+            return $.extend(statics.defaultConfig, {});
+        default:
+            throw new Error('DraggableScroll: Undefined type of config argument.');
+    }
+};
+
+
+
+statics._unitsConverters = {
+    px: function (dig) {
+        return dig;
+    },
+    vw: (function () {
+        var $doc = $(document);
+
+        return function (dig) {
+            return $doc.width() / 100 * dig;
         }
+    })(),
+    vh: (function () {
+        var $doc = $(document);
 
-        this._config = config;
-        this._$scrolledElm = this._config.$element;
-        this._pressed = false;
-        this._startMousedownX = undefined;
-        this._isAnimate = false;
-        this._startMousedownY = undefined;
-        this._startScrollX = undefined;
-        this._startScrollY = undefined;
-        this._startInertionPointX = 0;
-        this._startInertionPointY = 0;
-
-        this._lastInertionPointX = this._startInertionPointX;
-        this._lastInertionPointY = this._startInertionPointY;
-
-        this._findElm()
-            ._appendStyles()
-            ._initListeners();
-    };
-
-    var statics = $.fn.draggableScroll;
-    var prototype = $.fn.draggableScroll.prototype;
-
-    statics.validateConfig = function (conf) {
-        switch (typeof (conf)) {
-            case 'object':
-                return $.extend(statics.defaultConfig, conf);
-            case 'undefined':
-                return $.extend(statics.defaultConfig, {});
-            default:
-                throw new Error('DraggableScroll: Undefined type of config argument.');
+        return function (dig) {
+            return $doc.height() / 100 * dig;
         }
-    };
+    })()
+};
 
-    statics._unitsConverters = {
-        px: function (dig) {
-            return dig;
-        },
-        vw: (function () {
-            var $doc = $(document);
 
-            return function (dig) {
-                return $doc.width() / 100 * dig;
-            }
-        })(),
-        vh: (function () {
-            var $doc = $(document);
 
-            return function (dig) {
-                return $doc.height() / 100 * dig;
-            }
-        })()
-    };
+statics.addUnitConverter = function (unit, converter) {
+    if (statics._unitsConverters[unit])
+        console.warn('Converter for ' + unit + ' was changed.');
 
-    statics.addUnitConverter = function (unit, converter) {
-        if (statics._unitsConverters[unit])
-            console.warn('Converter for ' + unit + ' was changed.');
+    statics._unitsConverters[unit] = converter;
+};
 
-        statics._unitsConverters[unit] = converter;
-    };
 
-    statics.converterUnitToPxs = function (dig, unit) {
-        var converter = statics._unitsConverters[unit];
 
-        if (!converter)
-            throw new Error('Undefined css units named as: "'+unit+'" \n\.' +
-                'Add converter ($.fn.draggableScroll.addUnitConverter(unit, convertFunction)) to PXs for that unit, or you have a typo.');
+statics.converterUnitToPxs = function (dig, unit) {
+    var converter = statics._unitsConverters[unit];
 
-        return converter(dig);
-    };
+    if (!converter)
+        throw new Error('Undefined css units named as: "' + unit + '" \n\.' +
+            'Add converter ($.fn.draggableScroll.addUnitConverter(unit, convertFunction)) to PXs for that unit, or you have a typo.');
 
-    statics.defaultConfig = {
-        scrollX: true,
-        scrollY: true,
-        dropOnMouseLeave: false,
-        animateScrollByControls: true,
-        animateScrollTime: 200,
-        hideScrollbars: true,
-        inertiaByDragging: true
-    };
+    return converter(dig);
+};
 
-    prototype.scrollTo = function (turn, units, anim) {
-        var method = 'scroll' + turn.charAt(0).toUpperCase() + turn.slice(1);
-        var val;
 
-        if (units !== undefined) {
 
-            if (anim) {
-                var animParam = {};
+/**
+ *
+ *
+ * Prototype methods:
+ *
+ *
+ * */
 
-                animParam[method] = units;
+prototype.scrollTo = function (turn, units, anim) {
+    var method = 'scroll' + turn.charAt(0).toUpperCase() + turn.slice(1);
+    var val;
 
-                this._$scrolledElm
-                    .animate(animParam, this._config.animateScrollTime);
+    if (units !== undefined) {
 
-                this._isAnimate = true;
+        if (anim) {
+            var animParam = {};
 
-                setTimeout(function () {
-                    this._isAnimate = false;
-                }.bind(this), this._config.animateScrollTime);
+            animParam[method] = units;
 
-            } else {
-                this._$scrolledElm[method](units);
-            }
+            this._$scrolledElm
+                .animate(animParam, this._config.animateScrollTime);
+
+            this._isAnimate = true;
+
+            setTimeout(function () {
+                this._isAnimate = false;
+            }.bind(this), this._config.animateScrollTime);
 
         } else {
-            val = this._$scrolledElm[method]();
+            this._$scrolledElm[method](units);
         }
 
-        return val;
-    };
+    } else {
+        val = this._$scrolledElm[method]();
+    }
 
-    prototype._findElm = function () {
-        this._$scrolledWrapper = this._config.$element;
-        this._$scrolledElm = this._config.$element.find('[data-draggable-scrolled-content]');
+    return val;
+};
 
-        if (this._$scrolledElm.length === 0)
-            throw new Error('DraggableScroll: Cannon find scrolled content element. \n\
+
+
+prototype._findElm = function () {
+    this._$scrolledWrapper = this._config
+        .$element;
+
+    this._$scrolledElm = this._config
+        .$element
+        .find('[data-draggable-scrolled-content]');
+
+    if (this._$scrolledElm.length === 0)
+        throw new Error('DraggableScroll: Cannon find scrolled content element. \n\
             Use [data-draggable-scrolled-content] inside [data-draggable-scroll] container.');
 
-        if (this._$scrolledElm.length > 1)
-            throw new Error('DraggableScroll: Found more than one [data-draggable-scrolled-content] inside [data-draggable-scroll] container.');
+    if (this._$scrolledElm.length > 1)
+        throw new Error('DraggableScroll: Found more than one [data-draggable-scrolled-content] inside [data-draggable-scroll] container.');
 
-        return this;
-    };
+    return this;
+};
 
-    prototype._appendStyles = function () {
-        var hideScroll = this._config
-            .hideScrollbars;
 
+
+
+prototype._appendStyles = function () {
+    var hideScroll = this._config
+        .hideScrollbars;
+
+    this._$scrolledWrapper
+        .css('user-select', 'none');
+
+    if (hideScroll) {
         this._$scrolledWrapper
-            .css('user-select', 'none');
-
-        if (hideScroll) {
-            this._$scrolledWrapper
-                .css('overflow', 'hidden');
-        }
-
-        this._$scrolledElm
-            .css({
-                'overflow': 'scroll',
-                'height': hideScroll ? 'calc(100% + 17px)' : '100%',
-                'width': hideScroll ? 'calc(100% + 17px)' : '100%',
-            });
-
-        return this;
-    };
-
-    prototype._initListeners = function () {
-        this._$scrolledElm
-            .on('mousedown', this.__mousedownHandler.bind(this))
-            .on('mouseup', this.__mouseupHandler.bind(this))
-            .on('mousemove', this.__mousemoveHandler.bind(this));
-
-        this._$scrolledWrapper
-            .find('[data-draggable-scroll-control]')
-            .on('click', this.__controlsClickHandler.bind(this));
-
-        if (this._config.dropOnMouseLeave) {
-            this._$scrolledElm
-                .on('mouseleave', this.__mouseupHandler.bind(this));
-        }
-
-        return this;
-    };
-
-    prototype.__inertionMove = function () {
-        if (Math.abs(this._inertiaX) < 1)
-            this._inertiaX = 0;
-
-        var self = this;
-
-        if (Math.abs(this._inertiaY) < 1)
-            this._inertiaY = 0;
-
-        if (this._inertiaX) {
-            var stepX = this._inertiaX / 20;
-            this._inertiaX -= stepX / 2;
-            this.scrollTo('left', this.scrollTo('left') + stepX);
-        }
-
-        if (this._inertiaY) {
-            var stepY = this._inertiaY / 20;
-            this._inertiaY -= stepY / 2;
-            this.scrollTo('top', this.scrollTo('top') + stepY);
-        }
-
-        this._$scrolledWrapper
-            .addClass('scrollDraggable-inertion-move');
-
-        (this._inertiaY || this._inertiaX) && setTimeout(function () {
-            self.__inertionMove();
-        }, 0);
-    };
-
-    prototype.__mouseupHandler = function (ev) {
-        this._pressed = false;
-        this._$scrolledWrapper
-            .removeClass('scrollDraggable-draging');
-        if (this._config.inertiaByDragging) {
-            var lastX = this._lastInertionPointX;
-            var lastY = this._lastInertionPointY;
-            var currentX = ev.clientX;
-            var currentY = ev.clientY;
-            this._inertiaX = (lastX - currentX) * 60; //per sec
-            this._inertiaY = (lastY - currentY) * 60;
-
-            this.__inertionMove();
-        }
-    };
-
-    prototype.__mousedownHandler = function (ev) {
-        this._pressed = true;
-        this._startMousedownX = ev.clientX;
-        this._startMousedownY = ev.clientY;
-        this._startScrollX = this.scrollTo('left');
-        this._startScrollY = this.scrollTo('top');
-
-        if (this._config.inertiaByDragging) {
-            this._lastInertionPointX = this._startInertionPointX;
-            this._lastInertionPointY = this._startInertionPointY;
-            this._startInertionPointX = ev.clientX;
-            this._startInertionPointY = ev.clientY;
-            this._inertiaX = 0;
-            this._inertiaY = 0;
-        }
-        this._$scrolledWrapper.addClass('scrollDraggable-draging');
-    };
-
-    prototype.__mousemoveHandler = function (ev) {
-        if (this._pressed) {
-            if (this._config.inertiaByDragging) {
-                this._lastInertionPointX = this._startInertionPointX;
-                this._lastInertionPointY = this._startInertionPointY;
-                this._startInertionPointX = ev.clientX;
-                this._startInertionPointY = ev.clientY;
-            }
-            this._config.scrollX && this.scrollTo('left', this._startScrollX + (this._startMousedownX - ev.clientX));
-            this._config.scrollY && this.scrollTo('top', this._startScrollY + (this._startMousedownY - ev.clientY));
-        }
-    };
-
-    prototype.__controlsClickHandler = function (ev) {
-
-        if (this._isAnimate)
-            return;
-
-        var $target = $(ev.target);
-        var data = $target.data('draggableScrollControl').split(':');
-        var direction = data[0];
-        var step = statics.converterUnitToPxs(parseInt(data[1]), data[1].match(/[^\d\.]+/i)[0]);
-        var currentVal;
-
-        switch (direction) {
-            case 'top':
-                step = 0 - step;
-                currentVal = this.scrollTo('top');
-                break;
-            case 'bottom':
-                currentVal = this.scrollTo('top');
-                direction = 'top';
-                break;
-            case 'left':
-                currentVal = this.scrollTo('left');
-                step = 0 - step;
-                break;
-            case 'right':
-                direction = 'left';
-                currentVal = this.scrollTo('left');
-                break;
-        }
-
-        this.scrollTo(direction, currentVal + step, this._config.animateScrollByControls);
-    };
-
-    var $containers = $('[data-draggable-scroll]');
-
-    if ($containers.length) {
-        $containers.each(function (i, el) {
-            $(el).draggableScroll();
-        });
+            .css('overflow', 'hidden');
     }
-}));
+
+    this._$scrolledElm
+        .css({
+            'overflow': 'scroll',
+            'height': hideScroll ? 'calc(100% + 17px)' : '100%',
+            'width': hideScroll ? 'calc(100% + 17px)' : '100%',
+        });
+
+    return this;
+};
+
+
+
+
+prototype._initListeners = function () {
+    this._$scrolledElm
+        .on('mousedown', this.__mousedownHandler.bind(this))
+        .on('mouseup', this.__mouseupHandler.bind(this))
+        .on('mousemove', this.__mousemoveHandler.bind(this));
+
+    this._$scrolledWrapper
+        .find('[data-draggable-scroll-control]')
+        .on('click', this.__controlsClickHandler.bind(this));
+
+    if (this._config.dropOnMouseLeave) {
+        this._$scrolledElm
+            .on('mouseleave', this.__mouseupHandler.bind(this));
+    }
+
+    return this;
+};
+
+
+
+
+
+/**
+ *
+ *
+ * Unbind prototype methods(event-handlers):
+ *
+ *
+ * */
+
+prototype.__mouseupHandler = function (ev) {
+    this._pressed = false;
+    this._$scrolledWrapper
+        .removeClass('scrollDraggable-draging');
+
+    var lastX = this._lastInertionPointX;
+    var lastY = this._lastInertionPointY;
+    var currentX = ev.clientX;
+    var currentY = ev.clientY;
+
+    this._inertia.setInetion(lastX, lastY, currentX, currentY);
+
+    this._inertia.inertionMove();
+};
+
+
+
+prototype.__mousedownHandler = function (ev) {
+    this._pressed = true;
+    this._startMousedownX = ev.clientX;
+    this._startMousedownY = ev.clientY;
+    this._startScrollX = this.scrollTo('left');
+    this._startScrollY = this.scrollTo('top');
+
+    this._lastInertionPointX = ev.clientX;
+    this._lastInertionPointY = ev.clientY;
+
+    this._inertia.reset();
+
+    this._$scrolledWrapper.addClass('scrollDraggable-draging');
+};
+
+
+
+prototype.__mousemoveHandler = function (ev) {
+    if (this._pressed) {
+
+        if (this._isNeedToCheckInertia) {
+            this._lastInertionPointX = ev.clientX;
+            this._lastInertionPointY = ev.clientY;
+            this._isNeedToCheckInertia = false;
+
+
+            setTimeout( function () {
+                this._isNeedToCheckInertia = true;
+            }.bind(this), Math.ceil(1000/60) );
+        }
+
+
+        this._config.scrollX
+        && this.scrollTo('left', this._startScrollX + (this._startMousedownX - ev.clientX));
+
+        this._config.scrollY
+        && this.scrollTo('top', this._startScrollY + (this._startMousedownY - ev.clientY));
+
+    }
+};
+
+
+
+prototype.__controlsClickHandler = function (ev) {
+
+    if (this._isAnimate)
+        return;
+
+    var $target = $(ev.target);
+    var data = $target.data('draggableScrollControl').split(':');
+    var direction = data[0];
+    var step = statics.converterUnitToPxs(parseInt(data[1]), data[1].match(/[^\d\.]+/i)[0]);
+    var currentVal;
+
+    switch (direction) {
+        case 'top':
+            step = 0 - step;
+            currentVal = this.scrollTo('top');
+            break;
+        case 'bottom':
+            currentVal = this.scrollTo('top');
+            direction = 'top';
+            break;
+        case 'left':
+            currentVal = this.scrollTo('left');
+            step = 0 - step;
+            break;
+        case 'right':
+            direction = 'left';
+            currentVal = this.scrollTo('left');
+            break;
+    }
+
+    this.scrollTo(direction, currentVal + step, this._config.animateScrollByControls);
+};
+
+
+
+
+
+/**
+ * Auto-search for elemens by attribute
+ * */
+
+var $containers = $('[data-draggable-scroll]');
+
+if ($containers.length) {
+    $containers.each(function (i, el) {
+        $(el).draggableScroll();
+    });
+}
