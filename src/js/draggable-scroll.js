@@ -319,6 +319,8 @@ prototype.__controlsClickHandler = function (ev) {
     if (this._isAnimate)
         return;
 
+    this._inertia.reset();
+
     var $target = $(ev.target);
     var data = $target.data('draggableScrollControl').split(':');
     var direction = data[0];

@@ -10366,10 +10366,6 @@ return jQuery;
 
 },{}],2:[function(require,module,exports){
 function Inertia(aggregator, inertiaSpeed) {
-    this._startInertionPointX = 0;
-    this._startInertionPointY = 0;
-    this._lastInertionPointX = this._startInertionPointX;
-    this._lastInertionPointY = this._startInertionPointY;
     this._totalInertionEnergy = 0;
     this._totalInertionFrames = 1;
 
@@ -10382,46 +10378,48 @@ function Inertia(aggregator, inertiaSpeed) {
 var prototype = Inertia.prototype;
 
 prototype.reset = function () {
-    this._startInertionPointX = 0;
-    this._startInertionPointY = 0;
-    this._lastInertionPointX = this._startInertionPointX;
-    this._lastInertionPointY = this._startInertionPointY;
     this._totalInertionEnergy = 0;
     this._totalInertionFrames = 1;
 };
 
 prototype.inertionMove = function () {
 
-    var self = this;
+    if (this._totalInertionEnergy !== 0) {
+        var self = this;
 
-    this._aggregator
-        ._$scrolledWrapper
-        .addClass('scrollDraggable-inertion-move');
+        this._aggregator
+            ._$scrolledWrapper
+            .addClass('scrollDraggable-inertion-move');
 
-    var stepX = this._inertiaX / this._totalInertionFrames;
-    this._totalInertionEnergy -= Math.abs(stepX);
-    this._aggregator
-        .scrollTo('left', this._aggregator.scrollTo('left') + stepX);
-
-
-
-    var stepY = this._inertiaY / this._totalInertionFrames;
-    this._totalInertionEnergy -= Math.abs(stepY);
-    this._aggregator
-        .scrollTo('top', this._aggregator.scrollTo('top') + stepY);
+        var stepX = this._inertiaX / this._totalInertionFrames;
+        this._totalInertionEnergy -= Math.abs(stepX);
+        this._aggregator
+            .scrollTo('left', this._aggregator.scrollTo('left') + stepX);
 
 
-    if (this._totalInertionEnergy > 0 && !this._breakInertion) {
-        this._totalInertionFrames++;
 
-        setTimeout(function () {
+        var stepY = this._inertiaY / this._totalInertionFrames;
+        this._totalInertionEnergy -= Math.abs(stepY);
+        this._aggregator
+            .scrollTo('top', this._aggregator.scrollTo('top') + stepY);
 
-            self.inertionMove();
 
-        }, Math.ceil(1000 / 60));
+        if (this._totalInertionEnergy > 0 && !this._breakInertion) {
+            this._totalInertionFrames++;
 
+            setTimeout(function () {
+
+                self.inertionMove();
+
+            }, Math.ceil(1000 / 60));
+
+        } else {
+            this._breakInertion = false;
+            this._aggregator
+                ._$scrolledWrapper
+                .removeClass('scrollDraggable-inertion-move');
+        }
     } else {
-        this._breakInertion = false;
         this._aggregator
             ._$scrolledWrapper
             .removeClass('scrollDraggable-inertion-move');
@@ -10759,6 +10757,8 @@ prototype.__controlsClickHandler = function (ev) {
 
     if (this._isAnimate)
         return;
+
+    this._inertia.reset();
 
     var $target = $(ev.target);
     var data = $target.data('draggableScrollControl').split(':');
