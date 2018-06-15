@@ -39,7 +39,8 @@ $.fn.draggableScroll = function DraggableScroll(config) {
      * Inertia by drag mouse
      *
      * */
-    this._isNeedToCheckInertia = true;
+    this._isNeedToCheckInertia = 0;
+    this._timeToCheckInertia = 4;
     this._inertia = new Inertia(this, this._config.inertiaSpeed);
 
     /**
@@ -74,9 +75,9 @@ statics.defaultConfig = {
     dropOnMouseLeave: false,
     animateScrollByControls: true,
     animateScrollTime: 200,
-    hideScrollbars: true,
+    hideScrollbars: false,
     inertiaByDragging: true,
-    inertiaSpeed: 5
+    inertiaSpeed: 1
 };
 
 
@@ -264,7 +265,7 @@ prototype.__mouseupHandler = function (ev) {
     var currentX = ev.clientX;
     var currentY = ev.clientY;
 
-    this._inertia.setInetion(lastX, lastY, currentX, currentY);
+    this._inertia.setInertion(lastX, lastY, currentX, currentY);
 
     this._inertia.inertionMove();
 };
@@ -290,16 +291,12 @@ prototype.__mousedownHandler = function (ev) {
 
 prototype.__mousemoveHandler = function (ev) {
     if (this._pressed) {
-
-        if (this._isNeedToCheckInertia) {
+        if (!this._isNeedToCheckInertia) {
             this._lastInertionPointX = ev.clientX;
             this._lastInertionPointY = ev.clientY;
-            this._isNeedToCheckInertia = false;
-
-
-            setTimeout( function () {
-                this._isNeedToCheckInertia = true;
-            }.bind(this), Math.ceil(1000/60) );
+            this._isNeedToCheckInertia = this._timeToCheckInertia;
+        } else {
+            this._isNeedToCheckInertia--;
         }
 
 
