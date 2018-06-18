@@ -61,6 +61,11 @@ gulp.task('_reload', function () {
     connect.reload();
 });
 
+gulp.task('dist', [
+    'styles',
+    'js'
+]);
+
 gulp.task('default', [
     'styles',
     'js',
