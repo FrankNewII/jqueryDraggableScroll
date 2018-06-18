@@ -65,6 +65,8 @@ prototype.setInertion = function (x1, y1, x2, y2) {
 
     this._totalInertionEnergy = Math.abs(this._inertiaX) + Math.abs(this._inertiaY);
     this._totalInertionFrames = this._inertiaSpeed;
+
+    return this;
 };
 
 module.exports = Inertia;
