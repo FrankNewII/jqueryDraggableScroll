@@ -10441,7 +10441,6 @@ var $ = require('jquery');
 var Inertia = require('./draggable-scroll_inertion');
 
 
-
 $.fn.draggableScroll = function DraggableScroll(config) {
 
     /**
@@ -10478,10 +10477,9 @@ $.fn.draggableScroll = function DraggableScroll(config) {
      * Inertia by drag mouse
      *
      * */
-    this._pointsToCheckImpulse = 10;
+    this._pointsToCheckImpulse = 4;
     this._lastInertionsPoints = [];
-    this._lastInertionsPoints.length = this._pointsToCheckImpulse;
-    this._lastInertionsPoints.fill(0);
+
     this._inertia = new Inertia(this, this._config.inertialResistance);
 
     /**
@@ -10496,10 +10494,8 @@ $.fn.draggableScroll = function DraggableScroll(config) {
 };
 
 
-
 var statics = $.fn.draggableScroll;
 var prototype = $.fn.draggableScroll.prototype;
-
 
 
 /**
@@ -10518,9 +10514,8 @@ statics.defaultConfig = {
     animateScrollTime: 200,
     hideScrollbars: true,
     inertiaByDragging: true,
-    inertialResistance: 500
+    inertialResistance: 100
 };
-
 
 
 statics.validateConfig = function (conf) {
@@ -10533,7 +10528,6 @@ statics.validateConfig = function (conf) {
             throw new Error('DraggableScroll: Undefined type of config argument.');
     }
 };
-
 
 
 statics._unitsConverters = {
@@ -10557,14 +10551,12 @@ statics._unitsConverters = {
 };
 
 
-
 statics.addUnitConverter = function (unit, converter) {
     if (statics._unitsConverters[unit])
         console.warn('Converter for ' + unit + ' was changed.');
 
     statics._unitsConverters[unit] = converter;
 };
-
 
 
 statics.converterUnitToPxs = function (dig, unit) {
@@ -10576,7 +10568,6 @@ statics.converterUnitToPxs = function (dig, unit) {
 
     return converter(dig);
 };
-
 
 
 /**
@@ -10599,13 +10590,14 @@ prototype.scrollTo = function (turn, units, anim) {
             animParam[method] = units;
 
             this._$scrolledElm
-                .animate(animParam, this._config.animateScrollTime);
+                .animate(animParam,
+                    this._config.animateScrollTime,
+                    function () {
+                        this._isAnimate = false;
+                    }.bind(this));
 
             this._isAnimate = true;
 
-            setTimeout(function () {
-                this._isAnimate = false;
-            }.bind(this), this._config.animateScrollTime);
 
         } else {
             this._$scrolledElm[method](units);
@@ -10617,7 +10609,6 @@ prototype.scrollTo = function (turn, units, anim) {
 
     return val;
 };
-
 
 
 prototype._findElm = function () {
@@ -10637,8 +10628,6 @@ prototype._findElm = function () {
 
     return this;
 };
-
-
 
 
 prototype._appendStyles = function () {
@@ -10664,6 +10653,20 @@ prototype._appendStyles = function () {
 };
 
 
+prototype._addMovePoints = function (x, y) {
+    if (this._lastInertionsPoints.push({x: x, y: y}) > this._pointsToCheckImpulse) {
+        this._lastInertionsPoints.shift();
+    }
+
+    return this;
+};
+
+
+prototype._clearMovePoints = function () {
+    this._lastInertionsPoints.length = 0;
+
+    return this;
+};
 
 
 prototype._initListeners = function () {
@@ -10685,9 +10688,6 @@ prototype._initListeners = function () {
 };
 
 
-
-
-
 /**
  *
  *
@@ -10701,19 +10701,18 @@ prototype.__mouseupHandler = function (ev) {
     this._$scrolledWrapper
         .removeClass('scrollDraggable-draging');
 
-    var lastX = this._lastInertionPointX;
-    var lastY = this._lastInertionPointY;
-    lastX = 0;
-    lastY = 0;
+    var lastX = 0;
+    var lastY = 0;
 
     this._lastInertionsPoints.forEach(function (v) {
         lastX += v.x;
         lastY += v.y;
     });
 
-    lastX = lastX/this._lastInertionsPoints.length;
-    lastY = lastY/this._lastInertionsPoints.length;
-    this._lastInertionsPoints.fill(0);
+    lastX = lastX / this._lastInertionsPoints.length;
+    lastY = lastY / this._lastInertionsPoints.length;
+
+    this._clearMovePoints();
 
     var currentX = ev.clientX;
     var currentY = ev.clientY;
@@ -10724,7 +10723,6 @@ prototype.__mouseupHandler = function (ev) {
 };
 
 
-
 prototype.__mousedownHandler = function (ev) {
     this._pressed = true;
     this._startMousedownX = ev.clientX;
@@ -10732,26 +10730,17 @@ prototype.__mousedownHandler = function (ev) {
     this._startScrollX = this.scrollTo('left');
     this._startScrollY = this.scrollTo('top');
 
-    this._lastInertionPointX = ev.clientX;
-    this._lastInertionPointY = ev.clientY;
-
-    if(this._lastInertionsPoints.push({x: ev.clientX, y: ev.clientY}) > this._pointsToCheckImpulse ) {
-        this._lastInertionsPoints.shift();
-    }
-
+    this._addMovePoints(ev.clientX, ev.clientY);
     this._inertia.reset();
 
     this._$scrolledWrapper.addClass('scrollDraggable-draging');
 };
 
 
-
 prototype.__mousemoveHandler = function (ev) {
     if (this._pressed) {
 
-        if(this._lastInertionsPoints.push({x: ev.clientX, y: ev.clientY}) > this._pointsToCheckImpulse ) {
-            this._lastInertionsPoints.shift();
-        }
+        this._addMovePoints(ev.clientX, ev.clientY);
 
         this._config.scrollX
         && this.scrollTo('left', this._startScrollX + (this._startMousedownX - ev.clientX));
@@ -10761,7 +10750,6 @@ prototype.__mousemoveHandler = function (ev) {
 
     }
 };
-
 
 
 prototype.__controlsClickHandler = function (ev) {
@@ -10800,11 +10788,8 @@ prototype.__controlsClickHandler = function (ev) {
 };
 
 
-
-
-
 /**
- * Auto-search for elemens by attribute
+ * Auto-search for elements by attribute
  * */
 
 var $containers = $('[data-draggable-scroll]');
