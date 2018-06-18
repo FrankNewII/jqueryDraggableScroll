@@ -16,7 +16,7 @@ var gulpConfig = {
     watchCSS: 'src/styles/**/*.{sass,scss}',
     srcCSS: 'src/styles/main.scss',
     distJS: 'dist/',
-    dist: 'demo/',
+    dist: 'docs/',
     devBaseUrl: 'http://localhost'
 };
 
