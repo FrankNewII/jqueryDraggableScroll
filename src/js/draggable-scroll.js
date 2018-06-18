@@ -75,7 +75,7 @@ statics.defaultConfig = {
     animateScrollTime: 200,
     hideScrollbars: true,
     inertiaByDragging: true,
-    inertialResistance: 100
+    inertialResistance: 150
 };
 
 
