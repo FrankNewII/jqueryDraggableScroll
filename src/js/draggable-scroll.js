@@ -75,6 +75,8 @@ statics.defaultConfig = {
     animateScrollTime: 200,
     hideScrollbars: true,
     inertiaByDragging: true,
+    detectDirectionDrag: true,
+    removeDirectionDragOnMouseUp: true,
     inertialResistance: 150
 };
 
@@ -230,6 +232,55 @@ prototype._clearMovePoints = function () {
 };
 
 
+
+prototype._removeDirectionsClasses = function () {
+    if (this._config.detectDirectionDrag && this._config.removeDirectionDragOnMouseUp) {
+        this._$scrolledWrapper
+            .removeClass('scroll-draggable_move_left scroll-draggable_move_right scroll-draggable_move_top scroll-draggable_move_bottom');
+    }
+
+    return this;
+};
+
+
+
+prototype._toggleDirectionsClasses = function (prevX, prevY, currX, currY) {
+
+    if ( prevX < currX ) {
+        this._$scrolledWrapper
+            .addClass('scroll-draggable_move_left')
+            .removeClass('scroll-draggable_move_right');
+    } else {
+        if (prevX === currX) {
+            this._$scrolledWrapper
+                .removeClass('scroll-draggable_move_right scroll-draggable_move_left');
+        } else {
+            this._$scrolledWrapper
+                .addClass('scroll-draggable_move_right')
+                .removeClass('scroll-draggable_move_left');
+        }
+    }
+
+    if ( prevY < currY ) {
+        this._$scrolledWrapper
+            .addClass('scroll-draggable_move_top')
+            .removeClass('scroll-draggable_move_bottom');
+    } else {
+        if (prevY === currY) {
+            this._$scrolledWrapper
+                .removeClass('scroll-draggable_move_bottom scroll-draggable_move_top');
+        } else {
+            this._$scrolledWrapper
+                .addClass('scroll-draggable_move_bottom')
+                .removeClass('scroll-draggable_move_top');
+        }
+    }
+
+    return this;
+};
+
+
+
 prototype._initListeners = function () {
     this._$scrolledElm
         .on('mousedown', this.__mousedownHandler.bind(this))
@@ -262,6 +313,8 @@ prototype.__mouseupHandler = function (ev) {
     this._$scrolledWrapper
         .removeClass('scrollDraggable-draging');
 
+    this._removeDirectionsClasses();
+
     var lastX = 0;
     var lastY = 0;
 
@@ -278,9 +331,9 @@ prototype.__mouseupHandler = function (ev) {
     var currentX = ev.clientX;
     var currentY = ev.clientY;
 
-    this._inertia.setInertion(lastX, lastY, currentX, currentY);
-
-    this._inertia.inertionMove();
+    this._inertia
+        .setInertion(lastX, lastY, currentX, currentY)
+        .inertionMove();
 };
 
 
@@ -299,16 +352,21 @@ prototype.__mousedownHandler = function (ev) {
 
 
 prototype.__mousemoveHandler = function (ev) {
+    var prevX = this.scrollTo('left');
+    var prevY = this.scrollTo('top');
+    var currentX = this._startScrollX + (this._startMousedownX - ev.clientX);
+    var currentY = this._startScrollY + (this._startMousedownY - ev.clientY);
     if (this._pressed) {
 
         this._addMovePoints(ev.clientX, ev.clientY);
 
         this._config.scrollX
-        && this.scrollTo('left', this._startScrollX + (this._startMousedownX - ev.clientX));
+        && this.scrollTo('left', currentX);
 
         this._config.scrollY
-        && this.scrollTo('top', this._startScrollY + (this._startMousedownY - ev.clientY));
+        && this.scrollTo('top', currentY);
 
+        this._toggleDirectionsClasses(prevX, prevY, currentX, currentY);
     }
 };
 

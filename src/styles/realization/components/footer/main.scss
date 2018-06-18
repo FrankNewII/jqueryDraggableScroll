@@ -1,7 +1,9 @@
 .footer {
   background-color: $color-black;
   color: $color-white;
-  margin-top: 80px;
+  position: absolute;
+  bottom: 0;
+  width: 100%;
 
   @extend %after-clearfix;
 

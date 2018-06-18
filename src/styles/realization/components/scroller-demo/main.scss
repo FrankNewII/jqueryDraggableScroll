@@ -1,10 +1,24 @@
 .scroller-demo {
   width: 100%;
-  height: 300px;
+  height: 500px;
+  border: 20px solid transparent;
+  margin-left: -20px;
+  outline: 5px solid transparent;
+  transition: border-color .3s, outline .3s;
+  position: relative;
 
-  &_height_full-screen {
-    position: relative;
-    height: 100vh;
+
+  &.scrollDraggable-inertia-move {
+    outline: 5px solid $color-green;
+  }
+
+  &.scroll-draggable_move {
+
+    @each $direction in left right top bottom {
+      &_#{$direction} {
+        border-#{$direction}-color: $color-blue;
+      }
+    }
   }
 
   &_bgc_red {
