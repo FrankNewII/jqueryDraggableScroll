@@ -8,7 +8,7 @@
   },
   "repository": {
     "type": "git",
-    "url": "git+https://github.com/FrankNewII/draggableScroll.git"
+    "url": "git+https://github.com/FrankNewII/jqueryDraggableScroll.git"
   },
   "keywords": [
     "draggable-scroll-jquery",
@@ -18,9 +18,9 @@
   "author": "FrankNew",
   "license": "ISC",
   "bugs": {
-    "url": "https://github.com/FrankNewII/draggableScroll/issues"
+    "url": "https://github.com/FrankNewII/jqueryDraggableScroll/issues"
   },
-  "homepage": "https://github.com/FrankNewII/draggableScroll#readme",
+  "homepage": "https://franknewii.github.com/jqueryDraggableScroll",
   "dependencies": {
     "underscore": "^1.9.1",
     "jquery": "^3.3.1"
