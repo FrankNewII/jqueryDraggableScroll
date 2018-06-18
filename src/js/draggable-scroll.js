@@ -320,7 +320,7 @@ prototype.__controlsClickHandler = function (ev) {
 
     this._inertia.reset();
 
-    var $target = $(ev.target);
+    var $target = $(ev.currentTarget);
     var data = $target.data('draggableScrollControl').split(':');
     var direction = data[0];
     var step = statics.converterUnitToPxs(parseInt(data[1]), data[1].match(/[^\d\.]+/i)[0]);
