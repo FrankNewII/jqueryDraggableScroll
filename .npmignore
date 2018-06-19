@@ -1,1 +1,7 @@
 docs
+gulpfile.js
+.idea
+.gitignore
+package-lock.json
+src/styles
+src/views
