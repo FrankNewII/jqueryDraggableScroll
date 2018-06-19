@@ -1,6 +1,7 @@
 .scroller-demo {
-  width: calc(100% - 10px); //outline width
+  width: 90%;
   height: 100%;
+  margin: 0 auto;
   border: 20px solid transparent;
   outline: 5px solid transparent;
   transition: border-color .3s, outline .3s;
