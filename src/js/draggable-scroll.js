@@ -1,4 +1,3 @@
-var $ = require('jquery');
 var Inertia = require('./draggable-scroll_inertion');
 
 
@@ -11,7 +10,7 @@ $.fn.draggableScroll = function DraggableScroll(config) {
      * */
 
     if (!(this instanceof DraggableScroll)) {
-        config = DraggableScroll.validateConfig(config);
+        config = DraggableScroll._validateConfig(config);
         config.$element = this;
 
         return new DraggableScroll(config);
@@ -49,7 +48,7 @@ $.fn.draggableScroll = function DraggableScroll(config) {
      *
      * */
 
-    this._findElm()
+    this._findElms()
         ._appendStyles()
         ._initListeners();
 };
@@ -81,7 +80,7 @@ statics.defaultConfig = {
 };
 
 
-statics.validateConfig = function (conf) {
+statics._validateConfig = function (conf) {
     switch (typeof (conf)) {
         case 'object':
             return $.extend(statics.defaultConfig, conf);
@@ -142,8 +141,7 @@ statics.converterUnitToPxs = function (dig, unit) {
  * */
 
 prototype.scrollTo = function (turn, units, anim) {
-    var method = 'scroll' + turn.charAt(0).toUpperCase() + turn.slice(1);
-    var val;
+    var method = 'scroll' + turn.charAt(0).toUpperCase() + turn.slice(1), val;
 
     if (units !== undefined) {
 
@@ -174,7 +172,12 @@ prototype.scrollTo = function (turn, units, anim) {
 };
 
 
-prototype._findElm = function () {
+
+prototype.emitEvent = function (ev) {
+    this._$scrolledElm.trigger(ev);
+};
+
+prototype._findElms = function () {
     this._$scrolledWrapper = this._config
         .$element;
 
@@ -232,7 +235,6 @@ prototype._clearMovePoints = function () {
 };
 
 
-
 prototype._removeDirectionsClasses = function () {
     if (this._config.detectDirectionDrag && this._config.removeDirectionDragOnMouseUp) {
         this._$scrolledWrapper
@@ -241,7 +243,6 @@ prototype._removeDirectionsClasses = function () {
 
     return this;
 };
-
 
 
 prototype._toggleDirectionsClasses = function (prevX, prevY, currX, currY) {
@@ -278,7 +279,6 @@ prototype._toggleDirectionsClasses = function (prevX, prevY, currX, currY) {
 
     return this;
 };
-
 
 
 prototype._initListeners = function () {
@@ -318,10 +318,11 @@ prototype.__mouseupHandler = function (ev) {
     var lastX = 0;
     var lastY = 0;
 
-    this._lastInertionsPoints.forEach(function (v) {
-        lastX += v.x;
-        lastY += v.y;
-    });
+    this._lastInertionsPoints
+        .forEach(function (v) {
+            lastX += v.x;
+            lastY += v.y;
+        });
 
     lastX = lastX / this._lastInertionsPoints.length;
     lastY = lastY / this._lastInertionsPoints.length;
@@ -352,10 +353,12 @@ prototype.__mousedownHandler = function (ev) {
 
 
 prototype.__mousemoveHandler = function (ev) {
-    var prevX = this.scrollTo('left');
-    var prevY = this.scrollTo('top');
-    var currentX = this._startScrollX + (this._startMousedownX - ev.clientX);
-    var currentY = this._startScrollY + (this._startMousedownY - ev.clientY);
+
+    var prevX = this.scrollTo('left'),
+        prevY = this.scrollTo('top'),
+        currentX = this._startScrollX + (this._startMousedownX - ev.clientX),
+        currentY = this._startScrollY + (this._startMousedownY - ev.clientY);
+
     if (this._pressed) {
 
         this._addMovePoints(ev.clientX, ev.clientY);
@@ -378,25 +381,28 @@ prototype.__controlsClickHandler = function (ev) {
 
     this._inertia.reset();
 
-    var $target = $(ev.currentTarget);
-    var data = $target.data('draggableScrollControl').split(':');
-    var direction = data[0];
-    var step = statics.converterUnitToPxs(parseInt(data[1]), data[1].match(/[^\d\.]+/i)[0]);
-    var currentVal;
+    var $target = $(ev.currentTarget),
+        data = $target.data('draggableScrollControl').split(':'),
+        direction = data[0],
+        step = statics.converterUnitToPxs(parseInt(data[1]), data[1].match(/[^\d\.]+/i)[0]),
+        currentVal;
 
     switch (direction) {
         case 'top':
             step = 0 - step;
             currentVal = this.scrollTo('top');
             break;
+
         case 'bottom':
             currentVal = this.scrollTo('top');
             direction = 'top';
             break;
+
         case 'left':
             currentVal = this.scrollTo('left');
             step = 0 - step;
             break;
+
         case 'right':
             direction = 'left';
             currentVal = this.scrollTo('left');

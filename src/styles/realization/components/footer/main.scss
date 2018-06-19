@@ -1,11 +1,9 @@
 .footer {
   background-color: $color-black;
   color: $color-white;
-  position: absolute;
   bottom: 0;
   width: 100%;
-
-  @extend %after-clearfix;
+  position: absolute;
 
   &__side-container {
     &_float {
@@ -29,5 +27,8 @@
   &__centered-wrapper {
     max-width: 1200px;
     margin: 0 auto;
+    padding: 0 20px;
+
+    @extend %after-clearfix;
   }
 }

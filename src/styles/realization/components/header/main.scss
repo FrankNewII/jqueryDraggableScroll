@@ -1,0 +1,22 @@
+.header {
+  background-color: $color-black;
+  color: $color-white;
+  bottom: 0;
+  width: 100%;
+
+  &__title {
+    margin: 0;
+  }
+
+  &__centered-wrapper {
+    max-width: 1200px;
+    margin: 0 auto;
+    padding: {
+      top: 1px;
+      left: 20px;
+      right: 20px;
+    }
+
+    @extend %after-clearfix;
+  }
+}

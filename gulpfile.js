@@ -8,7 +8,9 @@ var gulp = require( 'gulp' ),
     concat = require('gulp-concat'),
     browserify = require('gulp-browserify'),
     sourcemaps = require('gulp-sourcemaps'),
-    connect = require('gulp-connect');
+    connect = require('gulp-connect'),
+    pug = require('gulp-pug');
+    pugVars = require('./src/views/variables');
 
 var gulpConfig = {
     watchJS: 'src/js/**.*js',
@@ -17,18 +19,21 @@ var gulpConfig = {
     srcCSS: 'src/styles/main.scss',
     distJS: 'dist/',
     dist: 'docs/',
+    watchPUG: 'src/views/**/*.{html,pug,js}',
+    srcPUG: 'src/views/index.pug',
     devBaseUrl: 'http://localhost'
 };
 
 gulp.task('watch', function () {
     gulp.watch(gulpConfig.watchCSS, ['styles', '_reload']);
     gulp.watch(gulpConfig.watchJS, ['js', '_reload']);
+    gulp.watch(gulpConfig.watchPUG, ['html', '_reload']);
 });
 
 gulp.task( 'js', function () {
     gulp.src( gulpConfig.srcJS )
         .pipe( sourcemaps.init() )
-        .pipe(browserify())
+        .pipe( browserify())
         .pipe( gulp.dest( gulpConfig.distJS ) )
         .pipe( uglify() )
         .pipe( gulp.dest( gulpConfig.dist ) )
@@ -39,7 +44,7 @@ gulp.task( 'js', function () {
 
 gulp.task('connect', function () {
     connect.server({
-        root: ['demo', 'dist'],
+        root: ['docs', 'dist'],
         base: gulpConfig.devBaseUrl,
         livereload: true
     });
@@ -57,6 +62,15 @@ gulp.task('styles', function () {
         .pipe(gulp.dest(gulpConfig.dist))
 });
 
+gulp.task('html', function () {
+    return gulp.src(gulpConfig.srcPUG)
+        .pipe(pug({
+            data: pugVars,
+            pretty: true
+        }))
+        .pipe(gulp.dest(gulpConfig.dist))
+});
+
 gulp.task('_reload', function () {
     connect.reload();
 });
@@ -69,6 +83,7 @@ gulp.task('dist', [
 gulp.task('default', [
     'styles',
     'js',
+    'html',
     'connect',
     'watch'
 ]);

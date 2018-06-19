@@ -1,46 +1,44 @@
 <!DOCTYPE html>
 <html lang="en">
-<head>
+  <head>
     <meta charset="UTF-8">
     <title>Draggable Scroll</title>
     <link rel="stylesheet" href="main.min.css">
-</head>
-<body>
-
-<main>
-    <header>
-        <h1>DraggableScroller</h1>
+  </head>
+  <body>
+    <header class="header">
+      <div class="header__centered-wrapper">
+        <h1 class="header__title">Draggable Scroll</h1>
+        <menu class="menu">
+          <li class="menu__item"><a class="menu__anchor" href="https://github.com/franknewII">GitHub</a></li>
+          <li class="menu__item"><a class="menu__anchor" href="https://github.com/franknewII/jqueryDraggableScroller">Fork</a></li>
+        </menu>
+      </div>
     </header>
     <section class="section">
-        <div data-draggable-scroll class="scroller-demo scroller-demo__controls scroller-demo_height_full-screen ">
-            <div class="scroller-demo__controlsWrapper">
-                <div data-draggable-scroll-control="left:30vw"
-                     class="scroller-demo__control scroller-demo__control_pos_left">
-                    <div class="footerss">a</div>
-                </div>
-                <div data-draggable-scroll-control="right:30vw"
-                     class="scroller-demo__control scroller-demo__control_pos_right"></div>
-                <div data-draggable-scroll-control="top:30vw"
-                     class="scroller-demo__control scroller-demo__control_pos_top"></div>
-                <div data-draggable-scroll-control="bottom:30vw"
-                     class="scroller-demo__control scroller-demo__control_pos_bottom"></div>
-            </div>
-            <div data-draggable-scrolled-content>
-                <div class="scroller-demo__wrapper  scroller-demo__wrapper_pic_map"></div>
-            </div>
+      <div class="scroller-demo scroller-demo__controls scroller-demo_height_full-screen" data-draggable-scroll>
+        <div class="scroller-demo__controls-wrapper">
+          <div class="scroller-demo__control scroller-demo__control_pos_left" data-draggable-scroll-control="left:30vw"></div>
+          <div class="scroller-demo__control scroller-demo__control_pos_right" data-draggable-scroll-control="right:30vw"></div>
+          <div class="scroller-demo__control scroller-demo__control_pos_top" data-draggable-scroll-control="top:30vw"></div>
+          <div class="scroller-demo__control scroller-demo__control_pos_bottom" data-draggable-scroll-control="bottom:30vw"></div>
         </div>
+        <div data-draggable-scrolled-content>
+          <div class="scroller-demo__wrapper scroller-demo__wrapper_pic_map"></div>
+        </div>
+      </div>
     </section>
     <footer class="footer">
-        <div class="footer__centered-wrapper">
-            <div class="footer__side-container footer__side-container_float_left">
-                <p class="footer__label">&copy; All rights is unregistered.</p>
-            </div>
-            <div class="footer__side-container footer__side-container_float_right">
-                <p class="footer__label">Do what you want.</p>
-            </div>
+      <div class="footer__centered-wrapper">
+        <div class="footer__side-container footer__side-container_float_left">
+          <p class="footer__label">© All rights is unregistered.</p>
         </div>
+        <div class="footer__side-container footer__side-container_float_right">
+          <p class="footer__label">You can do what you want</p>
+        </div>
+      </div>
     </footer>
-</main>
-<script src="draggable-scroll.js"></script>
-</body>
+    <script src="https://code.jquery.com/jquery-3.3.1.min.js"></script>
+    <script src="draggable-scroll.js"></script>
+  </body>
 </html>

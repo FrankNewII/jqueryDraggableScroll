@@ -5,37 +5,46 @@ function Inertia(aggregator, inertiaSpeed) {
     this._inertiaX = 0;
     this._inertiaY = 0;
     this._inertiaSpeed = inertiaSpeed;
-    this._aggregator = aggregator;
+    this.aggregator = aggregator;
 }
 
 var prototype = Inertia.prototype;
+
 
 prototype.reset = function () {
     this._totalInertionEnergy = 0;
     this._totalInertionFrames = 1;
 };
 
-prototype.inertionMove = function () {
 
-    if (this._totalInertionEnergy !== 0) {
+prototype.inertionMove = function () {
+    if (this._totalInertionEnergy > 1500) {
         var self = this;
 
-        this._aggregator
+        this.aggregator
             ._$scrolledWrapper
             .addClass('scrollDraggable-inertia-move');
 
         var stepX = this._inertiaX / this._totalInertionFrames;
         this._totalInertionEnergy -= Math.abs(stepX) * 12;
-        this._aggregator
-            .scrollTo('left', this._aggregator.scrollTo('left') + stepX);
+        this.aggregator
+            .scrollTo('left', this.aggregator.scrollTo('left') + stepX);
 
 
 
         var stepY = this._inertiaY / this._totalInertionFrames;
         this._totalInertionEnergy -= Math.abs(stepY) * 12;
-        this._aggregator
-            .scrollTo('top', this._aggregator.scrollTo('top') + stepY);
+        this.aggregator
+            .scrollTo('top', this.aggregator.scrollTo('top') + stepY);
 
+        this.aggregator.emitEvent({
+            type: 'draggableScroll:inertia',
+            data: {
+                leavePower: this._totalInertionEnergy,
+                stepX: stepX,
+                stepY: stepY,
+            }
+        });
 
         if (this._totalInertionEnergy > 0) {
             this._totalInertionFrames++;
@@ -48,16 +57,17 @@ prototype.inertionMove = function () {
 
         } else {
             this._breakInertion = false;
-            this._aggregator
+            this.aggregator
                 ._$scrolledWrapper
                 .removeClass('scrollDraggable-inertia-move');
         }
     } else {
-        this._aggregator
+        this.aggregator
             ._$scrolledWrapper
             .removeClass('scrollDraggable-inertia-move');
     }
 };
+
 
 prototype.setInertion = function (x1, y1, x2, y2) {
     this._inertiaX = (x1 - x2) * 60; //per sec
@@ -68,5 +78,6 @@ prototype.setInertion = function (x1, y1, x2, y2) {
 
     return this;
 };
+
 
 module.exports = Inertia;

@@ -1,0 +1,17 @@
+doctype html
+html(lang="en")
+    head
+        meta(charset="UTF-8")
+        title Draggable Scroll
+        each src in srcs.css
+            link(rel="stylesheet" href=src)
+
+    body
+        include components/header
+
+        include components/section
+
+        include components/footer
+
+        each src in srcs.js
+            script(src=src)
