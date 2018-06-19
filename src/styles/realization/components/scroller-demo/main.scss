@@ -1,5 +1,5 @@
 .scroller-demo {
-  width: 100%;
+  width: calc(100% - 10px); //outline width
   height: 100%;
   border: 20px solid transparent;
   outline: 5px solid transparent;
