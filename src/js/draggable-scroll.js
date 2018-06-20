@@ -37,8 +37,6 @@ $.fn.draggableScroll = function DraggableScroll(config) {
      * Inertia by drag mouse
      *
      * */
-    this._pointsToCheckImpulse = 4;
-    this._lastInertionsPoints = [];
 
     this._inertia = new Inertia(this, this._config.inertialResistance);
 
@@ -219,22 +217,6 @@ prototype._appendStyles = function () {
 };
 
 
-prototype._addMovePoints = function (x, y) {
-    if (this._lastInertionsPoints.push({x: x, y: y}) > this._pointsToCheckImpulse) {
-        this._lastInertionsPoints.shift();
-    }
-
-    return this;
-};
-
-
-prototype._clearMovePoints = function () {
-    this._lastInertionsPoints.length = 0;
-
-    return this;
-};
-
-
 prototype._removeDirectionsClasses = function () {
     if (this._config.detectDirectionDrag && this._config.removeDirectionDragOnMouseUp) {
         this._$scrolledWrapper
@@ -315,26 +297,8 @@ prototype.__mouseupHandler = function (ev) {
 
     this._removeDirectionsClasses();
 
-    var lastX = 0;
-    var lastY = 0;
-
-    this._lastInertionsPoints
-        .forEach(function (v) {
-            lastX += v.x;
-            lastY += v.y;
-        });
-
-    lastX = lastX / this._lastInertionsPoints.length;
-    lastY = lastY / this._lastInertionsPoints.length;
-
-    this._clearMovePoints();
-
-    var currentX = ev.clientX;
-    var currentY = ev.clientY;
-
     this._inertia
-        .setInertion(lastX, lastY, currentX, currentY)
-        .inertionMove();
+        .startInertionTo(ev.clientX, ev.clientY);
 };
 
 
@@ -345,8 +309,9 @@ prototype.__mousedownHandler = function (ev) {
     this._startScrollX = this.scrollTo('left');
     this._startScrollY = this.scrollTo('top');
 
-    this._addMovePoints(ev.clientX, ev.clientY);
-    this._inertia.reset();
+    this._inertia
+        .addMovePoints(ev.clientX, ev.clientY)
+        .reset();
 
     this._$scrolledWrapper.addClass('scrollDraggable-draging');
 };
@@ -361,7 +326,8 @@ prototype.__mousemoveHandler = function (ev) {
 
     if (this._pressed) {
 
-        this._addMovePoints(ev.clientX, ev.clientY);
+        this._inertia
+            .addMovePoints(ev.clientX, ev.clientY);
 
         this._config.scrollX
         && this.scrollTo('left', currentX);
