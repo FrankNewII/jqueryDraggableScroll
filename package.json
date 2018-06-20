@@ -1,5 +1,5 @@
 {
-  "name": "draggable-scroll-jquery",
+  "name": "jquery-draggable-scroll",
   "version": "0.9.9002",
   "description": "move element scroll bar by drag it",
   "main": "index.js",
