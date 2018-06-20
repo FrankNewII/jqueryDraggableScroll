@@ -181,7 +181,7 @@ prototype._findElms = function () {
 
     this._$scrolledElm = this._config
         .$element
-        .find('[data-draggable-scrolled-content]');
+        .find('[data-draggable-scroll-content]');
 
     if (this._$scrolledElm.length === 0)
         throw new Error('DraggableScroll: Cannon find scrolled content element. \n\
