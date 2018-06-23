@@ -38,6 +38,7 @@ For more information look at [live demo](https://franknewii.github.io/jqueryDrag
     $('#scrolled-content').draggableScroll(options);
 ``
 
+
 ## Options (defaultConfig)
 ```
 options = {
