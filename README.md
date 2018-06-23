@@ -22,7 +22,7 @@ For more information look at [live demo](https://franknewii.github.io/jqueryDrag
 
 ### By JS
 
-``
+````
     <div #id='scrolled-content'>
         <div data-draggable-scroll-control="left:30vw"></div>
         <div data-draggable-scroll-control="right:30vw"></div>
@@ -32,14 +32,14 @@ For more information look at [live demo](https://franknewii.github.io/jqueryDrag
             <table class="very-big-table></table>
         </div>
     </div>
-``
+````
 
 ``
     $('#scrolled-content').draggableScroll(options);
 ``
 
 ## Options (defaultConfig)
-``
+```
 options = {
     scrollX: true, // is need to scroll by X direction
     scrollY: true, // is need to scroll by Y direction
@@ -51,4 +51,4 @@ options = {
     detectDirectionDrag: true, // Add class to scrolled content with directions names
     removeDirectionDragOnMouseUp: true // Leave classnames with last direction on drop scrolled content
 };
-``
+```
